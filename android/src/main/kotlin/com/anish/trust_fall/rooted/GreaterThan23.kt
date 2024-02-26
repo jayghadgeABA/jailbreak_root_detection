@@ -19,7 +19,15 @@ class GreaterThan23 : CheckApiVersion {
             "/data/local/bin/su",
             "/system/sd/xbin/su",
             "/system/bin/failsafe/su",
-            "/data/local/su"
+            "/data/local/su",
+            "/bin/su",
+            "/bin/magisk",
+            "/bin/magiskpolicy",
+            "/bin/supolicy",
+
+
+
+
         )
         for (path in paths) {
             if (File(path).exists()) return true
