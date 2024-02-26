@@ -23,11 +23,7 @@ class GreaterThan23 : CheckApiVersion {
             "/bin/su",
             "/bin/magisk",
             "/bin/magiskpolicy",
-            "/bin/supolicy",
-
-
-
-
+            "/bin/supolicy"
         )
         for (path in paths) {
             if (File(path).exists()) return true
