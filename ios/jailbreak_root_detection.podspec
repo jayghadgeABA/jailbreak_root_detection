@@ -1,7 +1,7 @@
 #
 # To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html.
 # Run `pod lib lint screen_protector.podspec --verbose --no-clean` to validate before publishing.
-# Run `pod install --repo-update --verbose` to uppdate new version.
+# Run `pod install --repo-update --verbose` to update new version.
 #
 Pod::Spec.new do |s|
   s.name             = 'jailbreak_root_detection'
@@ -19,6 +19,9 @@ Check Jailbreak and Rooted for Android and iOS.
   s.dependency       'IOSSecuritySuite', '~> 1.9.10'
   s.platform         = :ios, '11.0'
   s.swift_version    = ["4.0", "4.1", "4.2", "5.0", "5.1", "5.2", "5.3", "5.4", "5.5"]
-  # Flutter.framework does not contain a i386 slice.
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
+  # Flutter.framework does not contain an i386 or arm64 slice.
+  s.pod_target_xcconfig = { 
+    'DEFINES_MODULE' => 'YES', 
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386 arm64'
+  }
 end
