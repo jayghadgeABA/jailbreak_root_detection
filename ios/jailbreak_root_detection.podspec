@@ -17,8 +17,8 @@ Check Jailbreak and Rooted for Android and iOS.
   s.source_files     = 'Classes/**/*'
   s.dependency       'Flutter'
   s.dependency       'IOSSecuritySuite', '~> 1.9.11'
-  s.platform         = :ios, '11.0'
-  s.swift_version    = ["4.0", "4.1", "4.2", "5.0", "5.1", "5.2", "5.3", "5.4", "5.5"]
+  s.platform         = :ios, '14.0'
+  s.swift_version    = ["4.0", "4.1", "4.2", "5.0", "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9"]
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
 end
