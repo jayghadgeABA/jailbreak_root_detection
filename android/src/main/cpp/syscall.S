@@ -92,6 +92,71 @@ my_ptrace:
     ret
 .size my_ptrace, .-my_ptrace
 
+#elif defined(__i386__)
+// x86 32-bit architecture
+
+.text
+.global my_openat
+.type my_openat, @function
+my_openat:
+    mov $295, %eax  // __NR_openat for x86
+    mov 4(%esp), %ebx
+    mov 8(%esp), %ecx
+    mov 12(%esp), %edx
+    mov 16(%esp), %esi
+    int $0x80
+    cmpl $-4096, %eax
+    jb 1f
+    negl %eax
+    pushl %eax
+    call __set_errno_internal
+    addl $4, %esp
+    movl $-1, %eax
+1:
+    ret
+.size my_openat, .-my_openat
+
+.text
+.global my_read
+.type my_read, @function
+my_read:
+    mov $3, %eax  // __NR_read for x86
+    mov 4(%esp), %ebx
+    mov 8(%esp), %ecx
+    mov 12(%esp), %edx
+    int $0x80
+    cmpl $-4096, %eax
+    jb 1f
+    negl %eax
+    pushl %eax
+    call __set_errno_internal
+    addl $4, %esp
+    movl $-1, %eax
+1:
+    ret
+.size my_read, .-my_read
+
+.text
+.global my_ptrace
+.type my_ptrace, @function
+my_ptrace:
+    mov $26, %eax  // __NR_ptrace for x86
+    mov 4(%esp), %ebx
+    mov 8(%esp), %ecx
+    mov 12(%esp), %edx
+    mov 16(%esp), %esi
+    int $0x80
+    cmpl $-4096, %eax
+    jb 1f
+    negl %eax
+    pushl %eax
+    call __set_errno_internal
+    addl $4, %esp
+    movl $-1, %eax
+1:
+    ret
+.size my_ptrace, .-my_ptrace
+
 #elif defined(__x86_64__)
 // x86_64 architecture
 
