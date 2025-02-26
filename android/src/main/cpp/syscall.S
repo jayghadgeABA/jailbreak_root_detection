@@ -1,69 +1,130 @@
-#include "bionic_asm.h"
+#include "syscall.h"
 
-#if defined(__aarch64__)
+// For ARM 32-bit architecture (armeabi-v7a)
+#if defined(__arm__)
 
+#define SYSCALL_TRAP 0
+
+.syntax unified
+
+// my_openat implementation
+ENTRY(my_openat)
+    mov ip, r7
+    ldr r7, =__NR_openat
+    swi #SYSCALL_TRAP
+    mov r7, ip
+    cmn r0, #(MAX_ERRNO + 1)
+    bxls lr
+    neg r0, r0
+    b __set_errno_internal
+END(my_openat)
+
+// my_read implementation
 ENTRY(my_read)
-    mov     x8, __NR_read
-    svc     #0
-    cmn     x0, #(MAX_ERRNO + 1)
-    cneg    x0, x0, hi
-    b.hi    __set_errno_internal
-    ret
+    mov ip, r7
+    ldr r7, =__NR_read
+    swi #SYSCALL_TRAP
+    mov r7, ip
+    cmn r0, #(MAX_ERRNO + 1)
+    bxls lr
+    neg r0, r0
+    b __set_errno_internal
 END(my_read)
 
+// my_ptrace implementation
+ENTRY(my_ptrace)
+    mov ip, r7
+    ldr r7, =__NR_ptrace
+    swi #SYSCALL_TRAP
+    mov r7, ip
+    cmn r0, #(MAX_ERRNO + 1)
+    bxls lr
+    neg r0, r0
+    b __set_errno_internal
+END(my_ptrace)
+
+#endif
+
+// For ARM64 (aarch64) architecture
+#if defined(__aarch64__)
+
+// my_openat implementation
 ENTRY(my_openat)
     mov     x8, __NR_openat
     svc     #0
     cmn     x0, #(MAX_ERRNO + 1)
-    cneg    x0, x0, hi
-    b.hi    __set_errno_internal
+    b.lo    1f
+    neg     x0, x0
+    b       __set_errno_internal
+1:
     ret
 END(my_openat)
 
+// my_read implementation  
+ENTRY(my_read)
+    mov     x8, __NR_read
+    svc     #0
+    cmn     x0, #(MAX_ERRNO + 1)
+    b.lo    1f
+    neg     x0, x0
+    b       __set_errno_internal
+1:
+    ret
+END(my_read)
+
+// my_ptrace implementation
 ENTRY(my_ptrace)
     mov     x8, __NR_ptrace
     svc     #0
     cmn     x0, #(MAX_ERRNO + 1)
-    cneg    x0, x0, hi
-    b.hi    __set_errno_internal
+    b.lo    1f
+    neg     x0, x0
+    b       __set_errno_internal
+1:
     ret
 END(my_ptrace)
 
-#elif defined(__x86_64__)
+#endif
 
-ENTRY(my_read)
-    movl    $__NR_read, %eax
-    syscall
-    cmpq    $-MAX_ERRNO, %rax
-    jb      my_read_return
-    negl    %eax
-    movl    %eax, %edi
-    call    __set_errno_internal
-my_read_return:
-    ret
-END(my_read)
+// For x86_64 architecture
+#if defined(__x86_64__)
 
+// my_openat implementation
 ENTRY(my_openat)
-    movl    $__NR_openat, %eax
+    mov     $__NR_openat, %eax
     syscall
-    cmpq    $-MAX_ERRNO, %rax
-    jb      my_openat_return
-    negl    %eax
-    movl    %eax, %edi
+    cmp     $-MAX_ERRNO, %rax
+    jb      1f
+    neg     %rax
+    mov     %rax, %rdi
     call    __set_errno_internal
-my_openat_return:
+1:
     ret
 END(my_openat)
 
-ENTRY(my_ptrace)
-    movl    $__NR_ptrace, %eax
+// my_read implementation
+ENTRY(my_read)
+    mov     $__NR_read, %eax
     syscall
-    cmpq    $-MAX_ERRNO, %rax
-    jb      my_ptrace_return
-    negl    %eax
-    movl    %eax, %edi
+    cmp     $-MAX_ERRNO, %rax
+    jb      1f
+    neg     %rax
+    mov     %rax, %rdi
     call    __set_errno_internal
-my_ptrace_return:
+1:
+    ret
+END(my_read)
+
+// my_ptrace implementation
+ENTRY(my_ptrace)
+    mov     $__NR_ptrace, %eax
+    syscall
+    cmp     $-MAX_ERRNO, %rax
+    jb      1f
+    neg     %rax
+    mov     %rax, %rdi
+    call    __set_errno_internal
+1:
     ret
 END(my_ptrace)
 
