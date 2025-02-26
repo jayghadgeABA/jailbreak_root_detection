@@ -1,134 +1,143 @@
-#include "syscall.h"
-
 // Declare the error function as an external symbol for assembly
 .extern __set_errno_internal
 
-// For ARM 32-bit architecture (armeabi-v7a)
 #if defined(__arm__)
-
-#define SYSCALL_TRAP 0
+// ARM 32-bit architecture (armeabi-v7a)
 
 .syntax unified
-
-// my_openat implementation
-ENTRY(my_openat)
+.text
+.global my_openat
+.type my_openat, %function
+my_openat:
     mov ip, r7
-    ldr r7, =__NR_openat
-    swi #SYSCALL_TRAP
+    ldr r7, =322  // __NR_openat for ARM
+    swi #0
     mov r7, ip
-    cmn r0, #(MAX_ERRNO + 1)
+    cmn r0, #4096  // MAX_ERRNO
     bxls lr
     neg r0, r0
     b __set_errno_internal
-END(my_openat)
+.size my_openat, .-my_openat
 
-// my_read implementation
-ENTRY(my_read)
+.text
+.global my_read
+.type my_read, %function
+my_read:
     mov ip, r7
-    ldr r7, =__NR_read
-    swi #SYSCALL_TRAP
+    ldr r7, =3  // __NR_read for ARM
+    swi #0
     mov r7, ip
-    cmn r0, #(MAX_ERRNO + 1)
+    cmn r0, #4096
     bxls lr
     neg r0, r0
     b __set_errno_internal
-END(my_read)
+.size my_read, .-my_read
 
-// my_ptrace implementation
-ENTRY(my_ptrace)
+.text
+.global my_ptrace
+.type my_ptrace, %function
+my_ptrace:
     mov ip, r7
-    ldr r7, =__NR_ptrace
-    swi #SYSCALL_TRAP
+    ldr r7, =26  // __NR_ptrace for ARM
+    swi #0
     mov r7, ip
-    cmn r0, #(MAX_ERRNO + 1)
+    cmn r0, #4096
     bxls lr
     neg r0, r0
     b __set_errno_internal
-END(my_ptrace)
+.size my_ptrace, .-my_ptrace
 
-#endif
+#elif defined(__aarch64__)
+// ARM64 architecture
 
-// For ARM64 (aarch64) architecture
-#if defined(__aarch64__)
-
-// my_openat implementation
-ENTRY(my_openat)
-    mov     x8, __NR_openat
-    svc     #0
-    cmn     x0, #(MAX_ERRNO + 1)
-    b.lo    1f
-    neg     x0, x0
-    b       __set_errno_internal
+.text
+.global my_openat
+.type my_openat, %function
+my_openat:
+    mov x8, #56  // __NR_openat for ARM64
+    svc #0
+    cmn x0, #4096
+    b.lo 1f
+    neg x0, x0
+    b __set_errno_internal
 1:
     ret
-END(my_openat)
+.size my_openat, .-my_openat
 
-// my_read implementation  
-ENTRY(my_read)
-    mov     x8, __NR_read
-    svc     #0
-    cmn     x0, #(MAX_ERRNO + 1)
-    b.lo    1f
-    neg     x0, x0
-    b       __set_errno_internal
+.text
+.global my_read
+.type my_read, %function
+my_read:
+    mov x8, #63  // __NR_read for ARM64
+    svc #0
+    cmn x0, #4096
+    b.lo 1f
+    neg x0, x0
+    b __set_errno_internal
 1:
     ret
-END(my_read)
+.size my_read, .-my_read
 
-// my_ptrace implementation
-ENTRY(my_ptrace)
-    mov     x8, __NR_ptrace
-    svc     #0
-    cmn     x0, #(MAX_ERRNO + 1)
-    b.lo    1f
-    neg     x0, x0
-    b       __set_errno_internal
+.text
+.global my_ptrace
+.type my_ptrace, %function
+my_ptrace:
+    mov x8, #117  // __NR_ptrace for ARM64
+    svc #0
+    cmn x0, #4096
+    b.lo 1f
+    neg x0, x0
+    b __set_errno_internal
 1:
     ret
-END(my_ptrace)
+.size my_ptrace, .-my_ptrace
 
-#endif
+#elif defined(__x86_64__)
+// x86_64 architecture
 
-// For x86_64 architecture
-#if defined(__x86_64__)
-
-// my_openat implementation
-ENTRY(my_openat)
-    mov     $__NR_openat, %eax
+.text
+.global my_openat
+.type my_openat, @function
+my_openat:
+    mov $257, %eax  // __NR_openat for x86_64
     syscall
-    cmp     $-MAX_ERRNO, %rax
-    jb      1f
-    neg     %rax
-    mov     %rax, %rdi
-    call    __set_errno_internal
+    cmp $-4096, %rax
+    jb 1f
+    neg %rax
+    mov %rax, %rdi
+    call __set_errno_internal
 1:
     ret
-END(my_openat)
+.size my_openat, .-my_openat
 
-// my_read implementation
-ENTRY(my_read)
-    mov     $__NR_read, %eax
+.text
+.global my_read
+.type my_read, @function
+my_read:
+    mov $0, %eax  // __NR_read for x86_64
     syscall
-    cmp     $-MAX_ERRNO, %rax
-    jb      1f
-    neg     %rax
-    mov     %rax, %rdi
-    call    __set_errno_internal
+    cmp $-4096, %rax
+    jb 1f
+    neg %rax
+    mov %rax, %rdi
+    call __set_errno_internal
 1:
     ret
-END(my_read)
+.size my_read, .-my_read
 
-// my_ptrace implementation
-ENTRY(my_ptrace)
-    mov     $__NR_ptrace, %eax
+.text
+.global my_ptrace
+.type my_ptrace, @function
+my_ptrace:
+    mov $101, %eax  // __NR_ptrace for x86_64
     syscall
-    cmp     $-MAX_ERRNO, %rax
-    jb      1f
-    neg     %rax
-    mov     %rax, %rdi
-    call    __set_errno_internal
+    cmp $-4096, %rax
+    jb 1f
+    neg %rax
+    mov %rax, %rdi
+    call __set_errno_internal
 1:
     ret
-END(my_ptrace)
+.size my_ptrace, .-my_ptrace
 
 #endif
