@@ -93,26 +93,30 @@ my_ptrace:
 .size my_ptrace, .-my_ptrace
 
 #elif defined(__i386__)
-// x86 32-bit architecture
+// x86 32-bit architecture - PIC-compatible version
 
 .text
 .global my_openat
 .type my_openat, @function
 my_openat:
-    mov $295, %eax  // __NR_openat for x86
-    mov 4(%esp), %ebx
-    mov 8(%esp), %ecx
-    mov 12(%esp), %edx
-    mov 16(%esp), %esi
+    pushl %ebx                  // Save ebx (required for PIC)
+    movl $295, %eax             // __NR_openat for x86
+    movl 8(%esp), %ebx          // First arg (adjusted for pushed ebx)
+    movl 12(%esp), %ecx         // Second arg
+    movl 16(%esp), %edx         // Third arg
+    movl 20(%esp), %esi         // Fourth arg
     int $0x80
     cmpl $-4096, %eax
-    jb 1f
+    jae 1f
+    popl %ebx                   // Restore ebx
+    ret
+1:  // Error path
     negl %eax
     pushl %eax
-    call __set_errno_internal
+    call __set_errno_internal@PLT  // Use PLT for PIC
     addl $4, %esp
     movl $-1, %eax
-1:
+    popl %ebx                   // Restore ebx
     ret
 .size my_openat, .-my_openat
 
@@ -120,19 +124,23 @@ my_openat:
 .global my_read
 .type my_read, @function
 my_read:
-    mov $3, %eax  // __NR_read for x86
-    mov 4(%esp), %ebx
-    mov 8(%esp), %ecx
-    mov 12(%esp), %edx
+    pushl %ebx                  // Save ebx
+    movl $3, %eax               // __NR_read for x86
+    movl 8(%esp), %ebx          // First arg
+    movl 12(%esp), %ecx         // Second arg
+    movl 16(%esp), %edx         // Third arg
     int $0x80
     cmpl $-4096, %eax
-    jb 1f
+    jae 1f
+    popl %ebx                   // Restore ebx
+    ret
+1:  // Error path
     negl %eax
     pushl %eax
-    call __set_errno_internal
+    call __set_errno_internal@PLT  // Use PLT for PIC
     addl $4, %esp
     movl $-1, %eax
-1:
+    popl %ebx                   // Restore ebx
     ret
 .size my_read, .-my_read
 
@@ -140,20 +148,24 @@ my_read:
 .global my_ptrace
 .type my_ptrace, @function
 my_ptrace:
-    mov $26, %eax  // __NR_ptrace for x86
-    mov 4(%esp), %ebx
-    mov 8(%esp), %ecx
-    mov 12(%esp), %edx
-    mov 16(%esp), %esi
+    pushl %ebx                  // Save ebx
+    movl $26, %eax              // __NR_ptrace for x86
+    movl 8(%esp), %ebx          // First arg
+    movl 12(%esp), %ecx         // Second arg
+    movl 16(%esp), %edx         // Third arg
+    movl 20(%esp), %esi         // Fourth arg
     int $0x80
     cmpl $-4096, %eax
-    jb 1f
+    jae 1f
+    popl %ebx                   // Restore ebx
+    ret
+1:  // Error path
     negl %eax
     pushl %eax
-    call __set_errno_internal
+    call __set_errno_internal@PLT  // Use PLT for PIC
     addl $4, %esp
     movl $-1, %eax
-1:
+    popl %ebx                   // Restore ebx
     ret
 .size my_ptrace, .-my_ptrace
 
@@ -170,7 +182,7 @@ my_openat:
     jb 1f
     neg %rax
     mov %rax, %rdi
-    call __set_errno_internal
+    call __set_errno_internal@PLT  // Use PLT for PIC
 1:
     ret
 .size my_openat, .-my_openat
@@ -185,7 +197,7 @@ my_read:
     jb 1f
     neg %rax
     mov %rax, %rdi
-    call __set_errno_internal
+    call __set_errno_internal@PLT  // Use PLT for PIC
 1:
     ret
 .size my_read, .-my_read
@@ -200,7 +212,7 @@ my_ptrace:
     jb 1f
     neg %rax
     mov %rax, %rdi
-    call __set_errno_internal
+    call __set_errno_internal@PLT  // Use PLT for PIC
 1:
     ret
 .size my_ptrace, .-my_ptrace
