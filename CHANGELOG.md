@@ -1,4 +1,8 @@
-## 1.0.0
+## 1.0.1
+
+* Uncommented the frida native library from graddle file.
+  
+* ## 1.0.0
 
 * Remove the function 'checkPSelectFlag' for the reverse engineering checker
 
