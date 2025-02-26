@@ -28,16 +28,6 @@
 
 #pragma once
 
-// Instead of including asm/unistd.h, which might not be available,
-// we'll define the syscall numbers directly for each architecture
-
-#define MAX_ERRNO 4095  /* For recognizing system call error returns. */
-
-#define __bionic_asm_custom_entry(f)
-#define __bionic_asm_custom_end(f)
-#define __bionic_asm_function_type @function
-#define __bionic_asm_custom_note_gnu_section()
-
 // System call numbers for different architectures
 #if defined(__aarch64__)
 #define __NR_ptrace 117
@@ -64,42 +54,39 @@
 #define __bionic_asm_align 16
 #endif
 
+#define MAX_ERRNO 4095  /* For recognizing system call error returns. */
+
+// Assembly macros
+#define __bionic_asm_custom_entry(f)
+#define __bionic_asm_custom_end(f)
+#define __bionic_asm_function_type @function
+
 #define ENTRY_NO_DWARF(f) \
     .text; \
     .globl f; \
     .balign __bionic_asm_align; \
     .type f, __bionic_asm_function_type; \
     f: \
-    __bionic_asm_custom_entry(f); \
+    __bionic_asm_custom_entry(f);
 
 #define ENTRY(f) \
     ENTRY_NO_DWARF(f) \
-    .cfi_startproc \
+    .cfi_startproc
 
 #define END_NO_DWARF(f) \
     .size f, .-f; \
-    __bionic_asm_custom_end(f) \
+    __bionic_asm_custom_end(f)
 
 #define END(f) \
     .cfi_endproc; \
-    END_NO_DWARF(f) \
+    END_NO_DWARF(f)
 
-/* Like ENTRY, but with hidden visibility. */
-#define ENTRY_PRIVATE(f) \
-    ENTRY(f); \
-    .hidden f \
-
-/* Like ENTRY_NO_DWARF, but with hidden visibility. */
-#define ENTRY_PRIVATE_NO_DWARF(f) \
-    ENTRY_NO_DWARF(f); \
-    .hidden f \
-
-// Declaration of symbols used in the assembly file
+// Declaration of the error handling function
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern long __set_errno_internal(int n);
+long __set_errno_internal(int n);
 
 #ifdef __cplusplus
 }

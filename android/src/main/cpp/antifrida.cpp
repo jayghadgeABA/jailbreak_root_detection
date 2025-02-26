@@ -1,20 +1,3 @@
-
-#ifndef __ANDROID__
-#define __ANDROID__ 1
-#endif
-
-#ifndef ANDROID_LOG_INFO
-#define ANDROID_LOG_INFO 4
-#endif
-
-#ifndef ANDROID_LOG_ERROR  
-#define ANDROID_LOG_ERROR 6
-#endif
-
-#ifndef __android_log_print
-#define __android_log_print(prio, tag, fmt...) printf(fmt)
-#endif
-
 #include <jni.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -23,45 +6,14 @@
 #include <unistd.h>
 #include <cerrno>
 #include <fcntl.h>
-// Fix for android/log.h include
-#ifdef __ANDROID__
-#include <android/log.h>
-#else
-// Fallback definitions if android/log.h isn't available
-#define ANDROID_LOG_INFO 4
-#define ANDROID_LOG_ERROR 6
-#define __android_log_print(prio, tag, fmt...) printf(fmt)
-#endif
+#include <android/log.h> // This already defines ANDROID_LOG_INFO and ANDROID_LOG_ERROR
 #include <sys/stat.h>
 #include <cstdlib>
 #include <string>
-// Fix for elf.h and link.h includes
-#if defined(__linux__) || defined(__ANDROID__)
 #include <elf.h>
 #include <link.h>
-#else
-// Minimal definitions for ELF structures if headers aren't available
-typedef uint32_t Elf32_Addr;
-typedef uint64_t Elf64_Addr;
-#if defined(__LP64__)
-#define ElfW(type) Elf64_##type
-#else
-#define ElfW(type) Elf32_##type
-#endif
-#define ELFMAG "\177ELF"
-#define SELFMAG 4
-#define EI_CLASS 4
-#define EI_DATA 5
-#define EI_VERSION 6
-#define ELFCLASS32 1
-#define ELFCLASS64 2
-#define ELFDATA2LSB 1
-#define EV_CURRENT 1
-#define ET_EXEC 2
-#define ET_DYN 3
-#endif
 #include <sys/ptrace.h>
-#include <cinttypes> // Add this for PRIx64 format specifier
+#include <cinttypes> // For PRIx64 format specifier
 
 #define unused_param(x) ((void)(x))
 
@@ -70,8 +22,7 @@ const char TAG[] = "JNI";
 
 // customized syscalls
 extern "C" int my_read(int, void *, size_t);
-extern "C" int
-my_openat(int dirfd, const char *const __pass_object_size pathname, int flags, mode_t modes);
+extern "C" int my_openat(int dirfd, const char *pathname, int flags, mode_t modes);
 extern "C" long my_ptrace(int __request, ...);
 
 // Our customized __set_errno_internal for syscall.S to use.
@@ -208,124 +159,4 @@ int elf_check_header(uintptr_t base_addr) {
     return 1;
 }
 
-int find_mem_string(uint64_t base, uint64_t end, unsigned char *ptr, unsigned int len) {
-    auto *rc = (unsigned char *) base;
-
-    while ((uint64_t) rc < end - len) {
-        if (*rc == *ptr) {
-            if (memcmp(rc, ptr, len) == 0) {
-                return 1;
-            }
-        }
-        rc++;
-    }
-    return 0;
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_w3conext_jailbreak_1root_1detection_frida_AntiFridaNativeLoader_checkFridaByPort(
-        JNIEnv *env, jobject thiz, jint port) {
-    unused_param(thiz);
-    struct sockaddr_in sa{};
-    sa.sin_family = AF_INET;
-    sa.sin_port = htons(port);
-    inet_aton("127.0.0.1", &sa.sin_addr);
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (connect(sock, (struct sockaddr *) &sa, sizeof(sa)) == 0) {
-        // we can connect to frida-server when it's running
-        close(sock);
-        return JNI_TRUE;
-    }
-
-    return JNI_FALSE;
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_w3conext_jailbreak_1root_1detection_frida_AntiFridaNativeLoader_checkBeingDebugged(
-        JNIEnv *env, jobject thiz, jboolean use_customized_syscall) {
-    unused_param(thiz);
-    long res = use_customized_syscall ? my_ptrace(PTRACE_TRACEME, 0) : ptrace(PTRACE_TRACEME, 0);
-    return res < 0 ? JNI_TRUE : JNI_FALSE;
-}
-
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_w3conext_jailbreak_1root_1detection_frida_AntiFridaNativeLoader_nativeReadProcMaps(
-        JNIEnv *env, jobject thiz, jboolean useCustomizedSyscall) {
-    unused_param(thiz);
-    char *data = nullptr;
-    size_t data_size = 0;
-
-    int res = read_pseudo_file_at(MAPS_FILE, &data, &data_size, useCustomizedSyscall);
-    if (res == -1) {
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "read_pseudo_file %s failed, errno %s: %d",
-                            MAPS_FILE, strerror(errno), errno);
-        if (data) {
-            free(data);
-        }
-        return nullptr;
-    } else if (res == 0) {
-        __android_log_print(ANDROID_LOG_INFO, TAG, "read_pseudo_file had read 0 bytes");
-        if (data) {
-            free(data);
-        }
-        return nullptr;
-    }
-    jstring str = env->NewStringUTF(data);
-    free(data);
-    return str;
-}
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_w3conext_jailbreak_1root_1detection_frida_AntiFridaNativeLoader_scanModulesForSignature(
-        JNIEnv *env, jobject thiz, jstring signature, jboolean use_customized_sys_calls) {
-    unused_param(thiz);
-    int fd = use_customized_sys_calls ? my_openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0)
-                                      : openat(AT_FDCWD, MAPS_FILE, O_RDONLY | O_CLOEXEC, 0);
-    if (fd == -1) {
-        __android_log_print(ANDROID_LOG_INFO, TAG, "openat error %s : %d", strerror(errno), errno);
-        return -1;
-    }
-
-    const int buf_size = 512;
-    char buf[buf_size];
-    char path[256];
-    char perm[5];
-    const char *sig = env->GetStringUTFChars(signature, nullptr);
-    size_t sig_len = strlen(sig);
-
-    uint64_t base, end, offset;
-    jboolean result = JNI_FALSE;
-
-    while ((read_line(fd, buf, buf_size, use_customized_sys_calls)) > 0) {
-        // Fix format specifiers for uint64_t types
-        if (sscanf(buf, "%" SCNx64 "-%" SCNx64 " %4s %" SCNx64 " %*s %*s %s", &base, &end, perm, &offset, path) != 5) {
-            continue;
-        }
-
-        if (perm[0] != 'r') continue;
-        if (perm[3] != 'p') continue; //do not touch the shared memory
-        if (0 != offset) continue;
-        if (strlen(path) == 0) continue;
-        if ('[' == path[0]) continue;
-        if (end - base <= 1000000) continue;
-        if (wrap_endsWith(path, ".oat")) continue;
-        if (elf_check_header(base) != 1) continue;
-
-        if (find_mem_string(base, end, (unsigned char *) sig, sig_len) == 1) {
-            // Fix format specifiers for uint64_t types
-            __android_log_print(ANDROID_LOG_INFO, TAG, "frida signature \"%s\" found in %" PRIx64 " - %" PRIx64,
-                                sig, base, end);
-            result = JNI_TRUE;
-            break;
-        }
-    }
-
-    env->ReleaseStringUTFChars(signature, sig);
-    close(fd);
-    return result;
-}
+int find_mem_string(uint64_
