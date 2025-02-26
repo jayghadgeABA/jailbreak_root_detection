@@ -32,6 +32,12 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 
+    android {
+    
+    ndkVersion "23.1.7779620" 
+    
+}
+
     kotlinOptions {
         jvmTarget = '11'
     }
