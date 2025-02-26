@@ -80,15 +80,3 @@
 #define END(f) \
     .cfi_endproc; \
     END_NO_DWARF(f)
-
-// Declaration of the error handling function
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Function declaration using a simpler form for assembly compatibility */
-long __set_errno_internal(int);
-
-#ifdef __cplusplus
-}
-#endif

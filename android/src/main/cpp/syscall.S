@@ -1,5 +1,8 @@
 #include "syscall.h"
 
+// Declare the error function as an external symbol for assembly
+.extern __set_errno_internal
+
 // For ARM 32-bit architecture (armeabi-v7a)
 #if defined(__arm__)
 
