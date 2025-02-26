@@ -1,3 +1,8 @@
+## 1.0.2
+
+* Remove external native frida cpp library
+
+
 ## 1.0.1
 
 * Uncommented the frida native library from graddle file.
