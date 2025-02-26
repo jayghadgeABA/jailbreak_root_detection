@@ -86,7 +86,8 @@
 extern "C" {
 #endif
 
-long __set_errno_internal(int n);
+/* Function declaration using a simpler form for assembly compatibility */
+long __set_errno_internal(int);
 
 #ifdef __cplusplus
 }
