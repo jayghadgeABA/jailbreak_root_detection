@@ -6,13 +6,18 @@ plugins {
 group 'com.w3conext.jailbreak_root_detection'
 version '1.0-SNAPSHOT'
 
+println "Configuring jailbreak_root_detection plugin"
+
 android {
     namespace 'com.w3conext.jailbreak_root_detection'
     compileSdk 35
 
+    println "Namespace set to: ${namespace}"
+
     defaultConfig {
         minSdk 21
         targetSdk 35
+        println "MinSdk: ${minSdk}, TargetSdk: ${targetSdk}"
     }
 
     compileOptions {
