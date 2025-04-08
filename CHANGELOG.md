@@ -1,3 +1,6 @@
+## 1.0.8
+Graddle updated
+
 ## 1.0.7
 Android name space added in graddle file, for iOS, isSimulator method changes done in UIDevice+JailBroken.swift file.
 
