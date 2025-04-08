@@ -1,3 +1,6 @@
+## 1.0.7
+Android name space added in graddle file, for iOS, isSimulator method changes done in UIDevice+JailBroken.swift file.
+
 ## 1.0.2
 
 * Remove external native frida cpp library

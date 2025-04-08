@@ -25,6 +25,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace 'com.w3conext.jailbreak_root_detection'
+
     compileSdkVersion 33
 
     compileOptions {

@@ -1,6 +1,6 @@
 name: jailbreak_root_detection
 description: Uses RootBeer + DetectFrida for Android root detection and IOSSecuritySuite for iOS jailbreak detection.
-version: 1.0.6
+version: 1.0.7
 homepage: https://github.com/jayghadgeABA/jailbreak_root_detection
 
 environment:
