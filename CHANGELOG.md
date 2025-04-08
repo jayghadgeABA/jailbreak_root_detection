@@ -1,3 +1,6 @@
+## 1.0.11
+Example folder removed.
+
 ## 1.0.10
 build.graddle file changes added and plugin management done in setting.graddle file
 
