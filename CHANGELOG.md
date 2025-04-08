@@ -1,4 +1,4 @@
-## 1.0.9
+## 1.0.10
 build.graddle file changes added and plugin management done in setting.graddle file
 
 ## 1.0.8
