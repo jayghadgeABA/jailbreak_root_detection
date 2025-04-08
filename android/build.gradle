@@ -25,8 +25,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    namespace 'com.w3conext.jailbreak_root_detection'
-
+    namespace "com.w3conext.jailbreak_root_detection"
     compileSdkVersion 35
 
     compileOptions {
@@ -49,7 +48,9 @@ android {
     }
 
     defaultConfig {
+        applicationId "com.w3conext.jailbreak_root_detection"
         minSdkVersion 21
+        targetSdkVersion 35
     }
 
    externalNativeBuild {
