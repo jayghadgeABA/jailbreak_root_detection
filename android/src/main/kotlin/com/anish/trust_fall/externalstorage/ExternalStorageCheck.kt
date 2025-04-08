@@ -8,37 +8,40 @@ import android.os.Build
 
 object ExternalStorageCheck {
     /**
-     * Checks if the application is installed on the SD card.
+     * Checks if the application is installed on external storage (e.g., SD card).
      *
-     * @return `true` if the application is installed on the sd card
+     * @param context The application context.
+     * @return `true` if the app is installed on external storage, `false` otherwise.
      */
     @SuppressLint("ObsoleteSdkInt", "SdCardPath")
     fun isOnExternalStorage(context: Context?): Boolean {
         if (context == null) return false
 
-        // check for API level 8 and higher
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.ECLAIR_MR1) {
             val pm = context.packageManager
             try {
-                val pi = pm.getPackageInfo(context.packageName, 0)
-                val ai = pi.applicationInfo
-                return ai.flags and ApplicationInfo.FLAG_EXTERNAL_STORAGE == ApplicationInfo.FLAG_EXTERNAL_STORAGE
+                val packageInfo = pm.getPackageInfo(context.packageName, 0)
+                val appInfo = packageInfo.applicationInfo
+                // Safe null check before accessing flags
+                appInfo?.let {
+                    return (it.flags and ApplicationInfo.FLAG_EXTERNAL_STORAGE) == ApplicationInfo.FLAG_EXTERNAL_STORAGE
+                }
             } catch (e: PackageManager.NameNotFoundException) {
-                // ignore
+                // Package not found; fall through to the next check
             }
         }
 
-        // check for API level 7 - check files dir
-        try {
-            val filesDir = context.filesDir.absolutePath
-            if (filesDir.startsWith("/data/")) {
-                return false
-            } else if (filesDir.contains("/mnt/") || filesDir.contains("/sdcard/")) {
-                return true
+        // Fallback check for older SDKs or if other methods fail
+        return try {
+            val filesDirPath = context.filesDir.absolutePath
+            when {
+                filesDirPath.startsWith("/data/") -> false
+                filesDirPath.contains("/mnt/") || filesDirPath.contains("/sdcard/") -> true
+                else -> false
             }
         } catch (e: Throwable) {
-            // ignore
+            // Catch-all fallback
+            false
         }
-        return false
     }
 }

@@ -1,3 +1,6 @@
+## 1.0.12
+External storage checks file updates, null checks added
+
 ## 1.0.11
 Example folder removed.
 
